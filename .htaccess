@@ -1,0 +1,4 @@
+Options +FollowSymLinks
+RewriteEngine On
+RewriteBase /
+RewriteRule ^(.*)$ http://NEWDOMAIN.com [R=301,L]

@@ -1,0 +1,158 @@
+.app {
+    position: absolute;
+    min-height: 100vh;
+    min-width: 100vw;
+    justify-content: flex-end;
+    pointer-events: none
+}
+.flex {
+    display: flex
+}
+.horizontal {
+    flex-direction: row;
+}
+.vertical {
+    flex-direction: column
+}
+.padding {
+    padding: 16px;
+}
+.padding-sm {
+    padding: 8px;
+}
+.margin {
+    margin: 16px;
+}
+.padding-lg {
+    padding: 32px
+}
+.no-expand{
+    align-items: flex-start;
+}
+.important {
+    flex-grow: 1.5;
+}
+.grow {
+    flex-grow: 1;
+}
+.full {
+    flex: 1
+}
+.stretch {
+    align-self: stretch;
+}
+.align-items-start {
+    align-items: baseline
+}
+.align-self-center {
+    align-self: center
+}
+.align-self-right {
+    align-self: flex-end;
+}
+.align-items-center {
+    align-items: center
+}
+.align-items-right {
+    align-items: flex-end
+}
+.justify-items-center {
+    justify-items: center
+}
+.justify-content-end {
+    justify-content: flex-end
+}
+.justify-content-center {
+    justify-content: center
+}
+.justify-self-center {
+    justify-self: center
+}
+.m-t {
+    margin-top: 16px;
+}
+.m-b {
+    margin-bottom: 16px;
+}
+.m-l {
+    margin-left: 16px;
+}
+.m-r {
+    margin-right: 16px;
+}
+.chat {
+    overflow: auto;
+}
+.chat-container {
+    width: 250px;
+    height: 200px;
+    display: flex;
+    flex-direction: column
+}
+.pointer-events-on {
+    pointer-events:all;
+}
+.pointer-events-off {
+    pointer-events:none;
+}
+.sender {
+    color: rgb(251, 255, 0);
+    font-weight: bold;
+    text-shadow: 0px 2px 1px rgb(0, 0, 0, .25)
+}
+.sender-me {
+    color: rgb(255, 0, 234);
+}
+.msg {
+    color: white;
+    font-weight: normal
+}
+.truncate {
+    word-wrap: break-word
+}
+/* width */
+.chat::-webkit-scrollbar {
+    width: 2px;
+}
+.chat-input {
+    background-color: transparent;
+    border-width: 0;
+}
+.chat-input:focus {
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0.5); 
+    color: white;
+}
+  
+/* Track */
+.chat::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1); 
+}
+
+/* Handle */
+.chat::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.25); 
+}
+
+/* Handle on hover */
+.chat::-webkit-scrollbar-thumb:hover {
+background: rgba(0, 0, 0, 0.5); 
+}
+.items-bar{
+    display: flex;
+    border: solid 2px  rgb(0, 0, 0, .25);
+}
+.item {
+    width: 48px;
+    height: 48px;
+    border: solid 2px  rgb(0, 0, 0, .25);
+    margin: 2px;
+    display: flex;
+    align-items: center;
+    justify-items: center;
+    justify-content: center;
+}
+.item-active {
+    border-width: 4px;
+    border: solid 4px  rgb(0, 0, 0, .5);
+}
