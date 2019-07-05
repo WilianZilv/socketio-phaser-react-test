@@ -103,7 +103,7 @@ io.on('connection', socket => {
 
         if(canPlace){
             canPlace = false
-            setTimeout(() => canPlace = true, 50)
+            setTimeout(() => canPlace = true, 20)
             
             if(!blocks[bid]){
                 blocks[bid] = {
@@ -124,7 +124,7 @@ io.on('connection', socket => {
         if(canDestroy){
             canDestroy = false
             setTimeout(() => canDestroy = true, 150)
-            
+
             const {x, y} = toGrid(pos)
             const bid = `${x}-${y}`
             if(blocks[bid]){

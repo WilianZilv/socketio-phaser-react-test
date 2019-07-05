@@ -13,7 +13,7 @@ class Player {
 
         this.remote = remote
 
-        this.rb = scene.physics.add.sprite(8192, 8192, 'dude')
+        this.rb = scene.physics.add.sprite(1024, 1024, 'dude')
         this.rb.setDepth(1)
         this.cloud = scene.add.sprite(0,0, 'cloud')
         this.cloud.setDepth(2)
@@ -21,8 +21,6 @@ class Player {
 
         scene.physics.add.collider(this.rb, scene.blocks);
         this.rb.setBounce(0)
-        this.rb.setCollideWorldBounds(true)
-            
         if(!remote){
             
             scene.input.keyboard.on('keydown-' + 'SPACE', () => {

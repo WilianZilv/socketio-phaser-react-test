@@ -53,7 +53,7 @@ class Main extends Phaser.Scene {
     {
         this.cameras.main.setBackgroundColor('#5baee5')
 
-        this.physics.world.setBounds(0, 0, 4096, 4096, true, true, true, true);
+        this.physics.world.setBounds(0, 0, 2048, 2048, true, true, true, true);
 
         blocksStore.forEach(({name, url}) => {
             this.load.image(name, url)
