@@ -153,7 +153,7 @@ class Main extends Phaser.Scene {
 
         const pointer = this.input.activePointer
         this.target.x = Math.floor((pointer.worldX + 16) / 32) * 32
-        this.target.y = Math.floor((pointer.worldX + 16) / 32) * 32
+        this.target.y = Math.floor((pointer.worldY + 16) / 32) * 32
 
 
         if(pointer.rightButtonDown()){
