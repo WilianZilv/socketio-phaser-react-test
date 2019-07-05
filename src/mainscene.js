@@ -152,8 +152,8 @@ class Main extends Phaser.Scene {
         this.input.keyboard.clearCaptures()
 
         const pointer = this.input.activePointer
-        this.target.x = (pointer.worldX - pointer.worldX % 32)
-        this.target.y = (pointer.worldY - pointer.worldY % 32)
+        this.target.x = Math.floor((pointer.worldX + 16) / 32) * 32
+        this.target.y = Math.floor((pointer.worldX + 16) / 32) * 32
 
 
         if(pointer.rightButtonDown()){
