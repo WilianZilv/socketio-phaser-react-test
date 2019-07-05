@@ -82,6 +82,7 @@
 }
 .chat {
     overflow: auto;
+    overflow-x: hidden
 }
 .chat-container {
     width: 250px;

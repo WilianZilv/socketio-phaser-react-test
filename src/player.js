@@ -7,18 +7,34 @@ class Player {
         x: 0,
         y: 0
     }
+    floating = false
 
     constructor(scene, remote=false){
 
         this.remote = remote
 
-        this.rb = scene.physics.add.sprite(2048, 2000, 'dude')
+        this.rb = scene.physics.add.sprite(8192, 8192, 'dude')
+        this.rb.setDepth(1)
+        this.cloud = scene.add.sprite(0,0, 'cloud')
+        this.cloud.setDepth(2)
+        this.cloud.alpha = 0
+
         scene.physics.add.collider(this.rb, scene.blocks);
         this.rb.setBounce(0)
         this.rb.setCollideWorldBounds(true)
             
         if(!remote){
             
+            scene.input.keyboard.on('keydown-' + 'SPACE', () => {
+
+                if(!Game.chatFocused){
+
+                    this.floating = !this.floating
+                    this.rb.body.moves = !this.floating
+                    this.cloud.alpha = this.floating ? 1 : 0 
+                }
+         
+            })
             setInterval(() => {
 
                 const data = {
@@ -27,7 +43,8 @@ class Player {
                         x: this.rb.x,
                         y: this.rb.y
                     },
-                    grounded: this.isGrounded()
+                    grounded: this.isGrounded(),
+                    floating: this.floating
                 }
                 Game.io.emit('playerTick', data)
     
@@ -50,36 +67,62 @@ class Player {
    
                 this.rb.x = lerp(this.rb.x, x, 0.25)
                 this.rb.y = lerp(this.rb.y, y, 0.25)
-                
+                this.floating = data.floating
+                this.rb.body.moves = !this.floating
+                this.cloud.alpha = this.floating ? 1 : 0 
+
             }catch(err) {
                 
             }
 
         }else{
-            this.input = GetAxisRaw()
+            if(!Game.chatFocused){
+                this.input = GetAxisRaw()
+            }else{
+                this.input = {
+                    x: 0,
+                    y: 0
+                }
+            
+            }
             grounded = this.isGrounded()
 
             
         }
-
+       
         if(this.input){
-
+            
             const targetSpeed = this.maxSpeed * this.input.x
 
-            if(grounded){
-
-                this.rb.setVelocityX(targetSpeed)
+            if(!this.floating){
+ 
+                if(grounded){
+                    
+                    this.rb.setVelocityX(targetSpeed)
+                }else{
+                    this.addVelocityX(targetSpeed)
+                }
+                
+                if(this.input.y > 0 && grounded){
+                    this.jump()
+                }
+                
+                
             }else{
-                this.addVelocityX(targetSpeed)
+
+                const xvel = (this.maxSpeed / 25) * this.input.x
+                const yvel = (this.maxSpeed / 25) * this.input.y
+
+                this.rb.setVelocityX(xvel * 25)
+                this.rb.setVelocityY(yvel * -25)
+                this.rb.x += xvel
+                this.rb.y -= yvel
             }
-
-            if(this.input.y > 0 && grounded){
-                this.jump()
-            }
-
-            this.rb.anims.play(this.input.x === 0 ? 'turn' : (this.input.x > 0 ? 'right' : 'left'), true);
-
+            this.rb.anims.play(this.input.x === 0 ? 'turn' : (this.input.x > 0 ? 'right' : 'left'), !this.floating);
+                
         }
+        this.cloud.x = this.rb.x
+        this.cloud.y = this.rb.y + 28
 
     }
     jump(){
@@ -97,5 +140,6 @@ class Player {
     }
     destroy(){
         this.rb.destroy()
+        this.cloud.destroy()
     }
 }
