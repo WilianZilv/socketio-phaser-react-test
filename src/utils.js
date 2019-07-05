@@ -32,8 +32,8 @@ function lerp (start, end, amt){
     return (1-amt)*start+amt*end
   }
 function toGrid (pos) {
-    pos.x = Math.floor(pos.x - pos.x % 32)
-    pos.y = Math.floor(pos.y - pos.y % 32)
+    pos.x = Math.floor((pos.x + 16) / 32) * 32
+    pos.y = Math.floor((pos.y + 16) / 32) * 32
     return pos
 }
 function follow(origin, target, offsetX = 0, offsetY = 0){
