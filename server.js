@@ -7,9 +7,10 @@ const fs = require('fs')
 app.disable('view cache')
 app.use(express.static(__dirname + '/'));
 
-app.get('/', function(req, res){
-    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+app.get('/', function(req, res, next){
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
     res.sendFile(__dirname + '/index.html');
+    next()
 });
 
 let players = {}
@@ -33,8 +34,10 @@ const saveWorld = () => {
         
     })
 }
-const sendMessage = (msg, sender=null) => {
-    io.emit('newMessage', {
+const sendMessage = (msg, sender=null, socket=null, id=null) => {
+    const con = socket ? socket : io
+    con.emit('newMessage', {
+        id: id,
         sender: sender !== null ? sender : 'Servidor',
         msg: msg
     })
@@ -50,6 +53,22 @@ const removePlayer = id => {
     io.emit('playerDisconnected', id)
     console.log(`${id} - Disconnected`)
 }
+const checkCommand = (msg, socket) => {
+    let isCommand = false
+    switch (msg){
+        case '!ajuda':
+            sendMessage('CLIQUE ESQUERDO: Destrói bloco CLIQUE DIREITO: Coloca bloco SCROLL: muda item atual ESPAÇO: alterna entre movimento normal e voo SHIFT+SCROLL: altera zoom',
+            null, socket)
+            isCommand = true
+            break
+
+        case '!dev':
+            sendMessage('Wilian da Silva', 'Desenvolvedor')
+            isCommand = true
+            break
+    }
+    return isCommand
+}
 io.on('connection', socket => {
 
     const id = socket.id
@@ -61,7 +80,7 @@ io.on('connection', socket => {
 
     socket.on('ready', nick => {
         
-        players[id] = {}
+        players[id] = {nick: nick, state: {}}
 
         io.emit('newPlayer', {
             id: id
@@ -71,15 +90,14 @@ io.on('connection', socket => {
         socket.emit('loadMessages', messages)
         socket.broadcast.emit('newMessage', {
             sender: 'Servidor',
-            msg: `<strong>${nick}</strong> entrou`
+            msg: `${nick} entrou`
         })
-        socket.emit('newMessage', {
-            sender: 'Servidor',
-            msg: 'Bem vindo!<br/>Aqui vão umas dicas:<br/><strong>CLIQUE ESQUERDO:</strong> Destrói bloco<br/><strong>CLIQUE DIREITO:</strong> Coloca bloco<br/><strong>SCROLL:</strong> muda item atual<br/><strong>ESPAÇO:</strong> alterna entre movimento normal e voo<br/><strong>SHIFT+SCROLL:</strong> altera zoom'
-        })
+        sendMessage('Bem vindo, qualquer dúvida, envie !ajuda',
+        null, socket)
+
         const inter = setInterval(() => {
             timeInactive ++
-            if(timeInactive > 1){
+            if(timeInactive > 3){
                 removePlayer(id)
                 socket.disconnect()
                 clearInterval(inter)
@@ -89,12 +107,16 @@ io.on('connection', socket => {
     })
 
     socket.on('playerTick', state => {
-        players[socket.id] = state
-        timeInactive = 0
+        if(players[id]){
+            players[id]['state'] = state
+            timeInactive = 0
+        }
     })
     socket.on('chat', msg => {
-        messages.push(msg)
-        sendMessage(msg.msg, msg.sender)
+        if(!checkCommand(msg.msg, socket)){
+            messages.push(msg)
+            sendMessage(msg.msg, msg.sender, null, id)
+        }
     })
     socket.on('placeBlock', block => {
 

@@ -36,3 +36,7 @@ function toGrid (pos) {
     pos.y = Math.floor(pos.y - pos.y % 32)
     return pos
 }
+function follow(origin, target, offsetX = 0, offsetY = 0){
+    origin.x = target.x + offsetX
+    origin.y = target.y + offsetY
+}

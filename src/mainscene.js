@@ -68,8 +68,6 @@ class Main extends Phaser.Scene {
         
     }
     create(){
-        
-     
 
         window.addEventListener('wheel', (e) => {
             const dir = e.deltaY / -100
@@ -193,10 +191,10 @@ class Main extends Phaser.Scene {
                     let p = this.players.instances[id]
     
                     if(!p){
-                        p = new Player(this, true)
+                        p = new Player(this, true, state.nick)
                         this.players.instances[id] = p
                     }
-                    p.update(state)
+                    p.update(state.state)
                 }
             })
     

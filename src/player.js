@@ -7,17 +7,25 @@ class Player {
         x: 0,
         y: 0
     }
-    floating = false
+    floating = true
+    nick = null
 
-    constructor(scene, remote=false){
+    constructor(scene, remote=false, nick=null){
 
         this.remote = remote
-
+        this.nick = nick
         this.rb = scene.physics.add.sprite(1024, 1024, 'dude')
         this.rb.setDepth(1)
         this.cloud = scene.add.sprite(0,0, 'cloud')
         this.cloud.setDepth(2)
-        this.cloud.alpha = 0
+        this.cloud.alpha = 1
+        this.rb.body.moves = false
+        this.text = scene.add.text(0,0, nick, {fontSize: 12})
+        this.text.fontWeight = 'bold'
+        this.text.setShadow(0, 2, 'rgba(0,0,0,0.85)', 2);
+        this.text.setOrigin(.5, .5)
+        this.text.setWordWrapWidth(200, true)
+        this.text.setDepth(3)
 
         scene.physics.add.collider(this.rb, scene.blocks);
         this.rb.setBounce(0)
@@ -119,9 +127,19 @@ class Player {
             this.rb.anims.play(this.input.x === 0 ? 'turn' : (this.input.x > 0 ? 'right' : 'left'), !this.floating);
                 
         }
-        this.cloud.x = this.rb.x
-        this.cloud.y = this.rb.y + 28
+        follow(this.cloud, this.rb, 0, 28)
+        follow(this.text, this.rb, 0, -32)
 
+    }
+    setText(text, showNick=true){
+        const duration = (text.length + 20) * 75
+        this.text.setText(text)
+        if(this.textTimeout){
+            clearTimeout(this.textTimeout)
+        }
+        this.textTimeout = setTimeout(() => {
+            this.text.setText(showNick ? this.nick : null)
+        }, duration);
     }
     jump(){
         this.rb.setVelocityY(-this.jumpForce)
@@ -139,5 +157,6 @@ class Player {
     destroy(){
         this.rb.destroy()
         this.cloud.destroy()
+        this.text.destroy()
     }
 }

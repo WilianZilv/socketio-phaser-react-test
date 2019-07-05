@@ -11,6 +11,14 @@ class Chat extends React.Component {
 
         Game.io.on('loadMessages', messages => this.setState({messages}))
         Game.io.on('newMessage', msg => {
+            if(msg.id){
+                if(msg.id === Game.io.id){
+                    
+                    Game.scene.player.setText(msg.msg, false)
+                }else if(Game.scene.players.instances[msg.id]){
+                    Game.scene.players.instances[msg.id].setText(msg.msg)
+                }
+            }
             const messages = this.state.messages
             messages.push(msg)
             this.setState({messages})
@@ -64,7 +72,7 @@ class Chat extends React.Component {
                         return (
                             <div key={i} className=''>
                                 <span className={'sender truncate ' + (sender == Game.username ? 'sender-me' : '')}>{sender}: <span 
-                                dangerouslySetInnerHTML={{ __html: msg }} className='msg truncate'></span></span>
+                                className='msg truncate'>{msg}</span></span>
                             </div>
                         )
                     })}
