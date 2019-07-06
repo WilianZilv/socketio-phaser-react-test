@@ -157,3 +157,14 @@ background: rgba(0, 0, 0, 0.5);
     border-width: 4px;
     border: solid 4px  rgb(0, 0, 0, .5);
 }
+.players {
+    position: absolute;
+    align-self: center;
+    top: 64px;
+    height: 500px;
+    width: 200px;
+    max-height: 60vh;
+    overflow: scroll;
+    padding: 16px;
+    background-color: rgb(0, 0, 0, .65)
+}

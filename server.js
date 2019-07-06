@@ -79,6 +79,11 @@ io.on('connection', socket => {
     let timeInactive = 0
 
     socket.on('ready', nick => {
+        if(!nick){
+            nick  = 'Anônimo'
+        }
+        nick = nick.substring(0, 12)
+
         
         players[id] = {nick: nick, state: {}}
 
@@ -107,12 +112,18 @@ io.on('connection', socket => {
     })
 
     socket.on('playerTick', state => {
+        if(!state){
+            return
+        }
         if(players[id]){
             players[id]['state'] = state
             timeInactive = 0
         }
     })
     socket.on('chat', msg => {
+        if(!msg){
+            return
+        }
         if(!checkCommand(msg.msg, socket)){
             messages.push(msg)
             sendMessage(msg.msg, msg.sender, null, id)
@@ -120,6 +131,9 @@ io.on('connection', socket => {
     })
     socket.on('placeBlock', block => {
 
+        if(!block){
+            return
+        }
         const {x, y, sprite} = toGrid(block)
         const bid = `${x}-${y}`
 
@@ -140,9 +154,12 @@ io.on('connection', socket => {
         }else{
             io.emit('destroyBlock', bid)
         }
+        
     })
     socket.on('destroyBlock', pos => {
-
+        if(!pos){
+            return
+        }
         if(canDestroy){
             canDestroy = false
             setTimeout(() => canDestroy = true, 150)
@@ -162,6 +179,16 @@ io.on('connection', socket => {
   
 });
 
+setInterval(() => {
+    messages = []
+    messages.push({
+        id: null,
+        sender: 'Servidor',
+        msg: 'Chat limpo!'
+    })
+    io.emit('loadMessages', messages)
+
+}, 1000 * 60 * 2.5)
 setInterval(() => io.emit('playersTick', players), 1000 / 60);
 setInterval(saveWorld, 1000 * 60)
 http.listen(80);
