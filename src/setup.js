@@ -1,5 +1,5 @@
 var config = {
-    type: Phaser.AUTO,
+    type: Phaser.WEBGL,
     width: window.outerWidth,
     height: window.innerHeight,
     physics: {

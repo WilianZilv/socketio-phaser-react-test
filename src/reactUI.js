@@ -16,16 +16,6 @@ class App extends React.Component {
         const { currentItem, items } = this.state
         return (
             <div className='app flex vertical padding-sm'>
-                <div className='chat players'>
-                    <span>aaa</span>
-                    {Object.entries(Game.scene.players.instances).map((id, instance) => {
-                        return (
-                            <div className='padding-sm'>
-                                <strong>{instance.nick}</strong>
-                            </div>
-                        )
-                    })}
-                </div>
                 <Chat/>
                 <div className='flex vertical align-items-center'>
                     <div className='items-bar'>

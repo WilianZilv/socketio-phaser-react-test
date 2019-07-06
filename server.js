@@ -29,7 +29,7 @@ const saveWorld = () => {
     saving = true
     fs.writeFile('./src/world.json', JSON.stringify(blocks), err => {
         
-        sendMessage('Mundo salvo!')
+        //sendMessage('Mundo salvo!')
         saving = false
         
     })
@@ -44,8 +44,8 @@ const sendMessage = (msg, sender=null, socket=null, id=null) => {
 }
 
 const toGrid = pos => {
-    pos.x = Math.floor(pos.x - pos.x % 32)
-    pos.y = Math.floor(pos.y - pos.y % 32)
+    pos.x = Math.floor((pos.x + 16) / 32) * 32
+    pos.y = Math.floor((pos.y + 16) / 32) * 32
     return pos
 }
 const removePlayer = id => {
@@ -139,7 +139,7 @@ io.on('connection', socket => {
 
         if(canPlace){
             canPlace = false
-            setTimeout(() => canPlace = true, 20)
+            setTimeout(() => canPlace = true, 10)
             
             if(!blocks[bid]){
                 blocks[bid] = {
@@ -162,7 +162,7 @@ io.on('connection', socket => {
         }
         if(canDestroy){
             canDestroy = false
-            setTimeout(() => canDestroy = true, 150)
+            setTimeout(() => canDestroy = true, 1000)
 
             const {x, y} = toGrid(pos)
             const bid = `${x}-${y}`

@@ -40,7 +40,10 @@ class Main extends Phaser.Scene {
             Game.io.emit('placeBlock', block)
         }
         if(!this.blocksNet[block.bid]){
-            this.blocksNet[block.bid] = this.blocks.create(block.x, block.y, block.sprite)
+            const blockSprite = this.add.sprite(block.x, block.y, block.sprite)
+            blockSprite.setVisible(false)
+            this.blocks.add(blockSprite)
+            this.blocksNet[block.bid] = blockSprite
         }
     }
     destroyBlock(bid){
@@ -68,14 +71,13 @@ class Main extends Phaser.Scene {
         
     }
     create(){
-
         window.addEventListener('wheel', (e) => {
-            const dir = e.deltaY / -100
+            const dir = -Math.sign(e.deltaY)
             if(this.zoom){
 
                 let curZoom = this.cameras.main.zoom + dir / 10
                 if(curZoom > 1) curZoom = 1
-                if(curZoom < .25) curZoom = .25
+                if(curZoom < .15) curZoom = .15
                 this.cameras.main.zoom = curZoom
                 
             }else{
@@ -145,15 +147,24 @@ class Main extends Phaser.Scene {
             })
         })
         Game.io.emit('ready', Game.username)
+
     }
     
     update(){
+
+        const blockSprites = this.blocks.getChildren()
+
+        blockSprites.forEach(b => {
+            var isInside = this.cameras.main.worldView.contains(b.x, b.y);
+            b.setVisible(isInside)
+        })
         this.scale.resize(window.outerWidth, window.innerHeight)
         this.input.keyboard.clearCaptures()
 
         const pointer = this.input.activePointer
-        this.target.x = (pointer.worldX - pointer.worldX % 32)
-        this.target.y = (pointer.worldY - pointer.worldY % 32)
+        const {x, y} = toGrid({x: pointer.worldX, y: pointer.worldY})
+        this.target.x = x
+        this.target.y = y
 
 
         if(pointer.rightButtonDown()){
@@ -165,7 +176,7 @@ class Main extends Phaser.Scene {
                     y: pointer.worldY
                 })
                 this.canPlace = false
-                setTimeout(() => this.canPlace = true, 150)
+                setTimeout(() => this.canPlace = true, 100)
             }
             
         } 
@@ -176,7 +187,7 @@ class Main extends Phaser.Scene {
                     y: pointer.worldY,
                 })
                 this.canDestroy = false
-                setTimeout(() => this.canDestroy = true, 250)
+                setTimeout(() => this.canDestroy = true, 1000)
             }
         }
     
