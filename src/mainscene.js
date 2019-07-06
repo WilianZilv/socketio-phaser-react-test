@@ -96,6 +96,7 @@ class Main extends Phaser.Scene {
         
         this.target = this.add.sprite(0, 0, blocksStore[this.currentItem].name)
         this.target.alpha = .5
+        this.target.setDepth(4)
         this.anims.create({
             key: 'left',
             frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
