@@ -72,10 +72,10 @@ class Main extends Phaser.Scene {
     }
     create(){
         window.addEventListener('wheel', (e) => {
-            const dir = -Math.sign(e.deltaY)
+            const dir = Math.sign(e.deltaY)
             if(this.zoom){
 
-                let curZoom = this.cameras.main.zoom + dir / 10
+                let curZoom = this.cameras.main.zoom - dir / 10
                 if(curZoom > 1) curZoom = 1
                 if(curZoom < .15) curZoom = .15
                 this.cameras.main.zoom = curZoom

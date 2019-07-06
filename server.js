@@ -56,6 +56,9 @@ const removePlayer = id => {
 const checkCommand = (msg, socket) => {
     let isCommand = false
     switch (msg){
+
+        case '!help':
+        case '!h':
         case '!ajuda':
             sendMessage('CLIQUE ESQUERDO: Destrói bloco CLIQUE DIREITO: Coloca bloco SCROLL: muda item atual ESPAÇO: alterna entre movimento normal e voo SHIFT+SCROLL: altera zoom',
             null, socket)
@@ -91,7 +94,23 @@ io.on('connection', socket => {
             id: id
         })
 
-        socket.emit('loadBlocks', blocks)
+        const blocksArray = Object.entries(blocks)
+        let blockChunks = []
+
+        while(blocksArray.length){
+            const chunkArray = blocksArray.splice(0, 128)
+            let chunkObject = {}
+            chunkArray.forEach(([key, val]) => {
+                chunkObject[key] = val
+            })
+
+            blockChunks.push(chunkObject)
+        }
+        blockChunks.forEach(chunk => {
+            socket.emit('loadBlocks', chunk)
+
+        })
+
         socket.emit('loadMessages', messages)
         socket.broadcast.emit('newMessage', {
             sender: 'Servidor',

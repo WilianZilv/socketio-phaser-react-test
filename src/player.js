@@ -116,8 +116,8 @@ class Player {
                 
             }else{
 
-                const xvel = (this.maxSpeed / 25) * this.input.x
-                const yvel = (this.maxSpeed / 25) * this.input.y
+                const xvel = (this.maxSpeed / 15) * this.input.x
+                const yvel = (this.maxSpeed / 15) * this.input.y
 
                 this.rb.setVelocityX(xvel * 25)
                 this.rb.setVelocityY(yvel * -25)
