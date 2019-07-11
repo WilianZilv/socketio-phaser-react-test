@@ -60,7 +60,7 @@ const checkCommand = (msg, socket) => {
         case '!help':
         case '!h':
         case '!ajuda':
-            sendMessage('CLIQUE ESQUERDO: Destrói bloco CLIQUE DIREITO: Coloca bloco SCROLL: muda item atual ESPAÇO: alterna entre movimento normal e voo SHIFT+SCROLL: altera zoom',
+            sendMessage('CLIQUE ESQUERDO: Destrói bloco CLIQUE DIREITO: Coloca bloco SCROLL: muda item atual SHIFT+SCROLL: altera zoom',
             null, socket)
             isCommand = true
             break
@@ -83,14 +83,17 @@ io.on('connection', socket => {
 
     socket.on('ready', nick => {
         if(!nick){
-            nick  = 'Anônimo'
+            socket.disconnect()
+            return
         }
         nick = nick.substring(0, 12)
-
         
-        players[id] = {nick: nick, state: {}}
+        socket.emit('loadPlayers', players)
+        
+        players[id] = {nick: nick, state: {input: {x: 0, y: 0}, position: {x: 1024, y: 1024}}}
 
         io.emit('newPlayer', {
+            nick: nick,
             id: id
         })
 
@@ -106,10 +109,7 @@ io.on('connection', socket => {
 
             blockChunks.push(chunkObject)
         }
-        blockChunks.forEach(chunk => {
-            socket.emit('loadBlocks', chunk)
-
-        })
+        blockChunks.forEach(chunk => socket.emit('loadBlocks', chunk))
 
         socket.emit('loadMessages', messages)
         socket.broadcast.emit('newMessage', {
@@ -121,8 +121,7 @@ io.on('connection', socket => {
 
         const inter = setInterval(() => {
             timeInactive ++
-            if(timeInactive > 3){
-                removePlayer(id)
+            if(timeInactive > 5){
                 socket.disconnect()
                 clearInterval(inter)
             }
@@ -140,12 +139,14 @@ io.on('connection', socket => {
         }
     })
     socket.on('chat', msg => {
-        if(!msg){
-            return
-        }
-        if(!checkCommand(msg.msg, socket)){
-            messages.push(msg)
-            sendMessage(msg.msg, msg.sender, null, id)
+        try{
+            msg.msg = msg.msg.substring(0, 120)
+            if(!checkCommand(msg.msg, socket)){
+                messages.push(msg)
+                sendMessage(msg.msg, msg.sender, null, id)
+            }
+        }catch(err){
+            console.log(`${id}: ${err}`)
         }
     })
     socket.on('placeBlock', block => {
@@ -153,8 +154,8 @@ io.on('connection', socket => {
         if(!block){
             return
         }
-        const {x, y, sprite} = toGrid(block)
-        const bid = `${x}-${y}`
+        block = toGrid(block)
+        const bid = `${block.x}-${block.y}`
 
         if(canPlace){
             canPlace = false
@@ -162,10 +163,9 @@ io.on('connection', socket => {
             
             if(!blocks[bid]){
                 blocks[bid] = {
-                    bid: bid,
-                    x: x,
-                    y: y,
-                    sprite: sprite
+                    x: block.x,
+                    y: block.y,
+                    id: block.id
                 }
                 io.emit('placeBlock', blocks[bid])
             }

@@ -12,11 +12,12 @@ class Chat extends React.Component {
         Game.io.on('loadMessages', messages => this.setState({messages}))
         Game.io.on('newMessage', msg => {
             if(msg.id){
-                if(msg.id === Game.io.id){
-                    
-                    Game.scene.player.setText(msg.msg, false)
-                }else if(Game.scene.players.instances[msg.id]){
-                    Game.scene.players.instances[msg.id].setText(msg.msg)
+
+                const allPlayers = Game.scene.allPlayers.getChildren()
+                for(let player of allPlayers){
+                    if(msg.id === player.id){
+                        player.changeText(msg.msg, msg.id !== Game.io.id)
+                    }
                 }
             }
             const messages = this.state.messages
@@ -67,7 +68,7 @@ class Chat extends React.Component {
 
         return (
             <div className={`chat-container pointer-events-${this.state.focus ? 'on' : 'off'}`}>
-                <div className='full chat' ref={ref => this.chat = ref}>
+                <div className='full chat scroll' ref={ref => this.chat = ref}>
                     {this.state.messages.map(({sender, msg}, i) => {
                         return (
                             <div key={i} className=''>

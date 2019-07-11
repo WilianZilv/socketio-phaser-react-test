@@ -4,15 +4,12 @@ class Main extends Phaser.Scene {
     {
         super('GameScene');
         Game.scene = this
-        this.player = null
-        this.players = {
-            instances: {},
-            state: {}
-        }
+
+        this.playersState = {}
+        this.blocksNet = {}
 
         
         this.currentItem = 0;
-        this.blocksNet = {}
         this.canPlace = this.canDestroy = true
         this.zoom = false
     }
@@ -20,7 +17,7 @@ class Main extends Phaser.Scene {
         if(!Game.chatFocused){
             Game.setCurrentItem(i)
             this.currentItem = i;
-            this.target.setTexture(blocksStore[this.currentItem].name)
+            this.target.setTexture('blocks', i)
         }
     }
     changeItem(dir){
@@ -32,18 +29,20 @@ class Main extends Phaser.Scene {
         }
         this.setCurrentItem(next)
     }
-    spawnBlock(block=null, from=null){
+    async spawnBlock(block=null, from=null){
         if(from){
             block = toGrid(from)
-            block.bid = `${block.x}-${block.y}`
+            
             
             Game.io.emit('placeBlock', block)
         }
+        block.bid = `${block.x}-${block.y}`
+
         if(!this.blocksNet[block.bid]){
-            const blockSprite = this.add.sprite(block.x, block.y, block.sprite)
-            blockSprite.setVisible(false)
-            this.blocks.add(blockSprite)
+
+            const blockSprite = this.blocksBlitter.create(block.x, block.y, block.id)
             this.blocksNet[block.bid] = blockSprite
+
         }
     }
     destroyBlock(bid){
@@ -52,16 +51,24 @@ class Main extends Phaser.Scene {
             delete this.blocksNet[bid]
         }
     }
+    spawnPlayer(nick, id){
+        const remote = Game.io.id !== id
+        const newPlayer = new Player(this, remote, nick, id)
+
+        this.allPlayers.add(newPlayer)
+
+        if(!remote){
+            this.cameras.main.startFollow(newPlayer, true, .25, .25)
+        }
+        Game.updatePlayers()
+    }
     preload ()
     {
         this.cameras.main.setBackgroundColor('#5baee5')
-
+        
         this.physics.world.setBounds(0, 0, 2048, 2048, true, true, true, true);
 
-        blocksStore.forEach(({name, url}) => {
-            this.load.image(name, url)
-        })
-
+        this.load.spritesheet('blocks', 'src/assets/block/block_sheet.png', { frameWidth: 32, frameHeight: 32})
         this.load.spritesheet('dude', 
             'src/assets/dude.png',
             { frameWidth: 32, frameHeight: 48 }
@@ -70,6 +77,7 @@ class Main extends Phaser.Scene {
         this.load.image('cloud', 'src/assets/cloud.png')
         
     }
+   
     create(){
         window.addEventListener('wheel', (e) => {
             const dir = Math.sign(e.deltaY)
@@ -93,10 +101,14 @@ class Main extends Phaser.Scene {
         this.input.keyboard.on('keyup-' + 'SHIFT', () => {
             this.zoom = false
         })
-        
-        this.target = this.add.sprite(0, 0, blocksStore[this.currentItem].name)
-        this.target.alpha = .5
+        this.camera = this.cameras.main
+        this.target = this.add.sprite(0, 0)
+        this.target.alpha = .75
         this.target.setDepth(4)
+        this.setCurrentItem(0)
+        this.allPlayers = this.add.group()
+        this.allPlayers.runChildUpdate = true
+
         this.anims.create({
             key: 'left',
             frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
@@ -116,25 +128,37 @@ class Main extends Phaser.Scene {
             frameRate: 10,
             repeat: -1
         });
+        this.blocksBlitter = this.add.blitter(-16,-16,'blocks')
 
         this.blocks = this.physics.add.staticGroup();
-        Game.io.on('newPlayer', ({id}) => {
-    
-            if(Game.io.id === id){
-                this.player = new Player(this)
-                this.cameras.main.startFollow(this.player.rb, true, .25, .25)
-            }
+        this.blocks.add(this.blocksBlitter)
+
+        Game.io.on('newPlayer', ({nick, id}) => {
+            this.spawnPlayer(nick, id)
         })
-        Game.io.on('playersTick', s => this.players.state = s)
+
+        Game.io.on('loadPlayers', players => {
+            Object.entries(players).forEach(([id, player]) => {
+                if(id !== Game.io.id){
+                    this.spawnPlayer(player.nick, id)
+                }
+            })
+        })
         
         Game.io.on('playerDisconnected', id => {
-            const p = this.players.instances[id]
-            if(p){
-                p.destroy()
-                delete this.players.instances[id]
-                delete this.players.state[id]
+            
+            const allPlayers = this.allPlayers.getChildren()
+            for(let player of allPlayers){
+                if(player.id === id){
+                    player.disconnect()
+                    break
+                }
             }
+            Game.updatePlayers()
+            
         })
+
+        Game.io.on('playersTick', s => this.playersState = s)
     
         Game.io.on('placeBlock', block => {
             this.spawnBlock(block)    
@@ -148,17 +172,10 @@ class Main extends Phaser.Scene {
             })
         })
         Game.io.emit('ready', Game.username)
-
     }
     
-    update(){
-
-        const blockSprites = this.blocks.getChildren()
-
-        blockSprites.forEach(b => {
-            var isInside = this.cameras.main.worldView.contains(b.x, b.y);
-            b.setVisible(isInside)
-        })
+    update(time, delta){
+        
         this.scale.resize(window.outerWidth, window.innerHeight)
         this.input.keyboard.clearCaptures()
 
@@ -172,9 +189,9 @@ class Main extends Phaser.Scene {
 
             if(this.canPlace){
                 this.spawnBlock(null, {
-                    sprite: blocksStore[this.currentItem].name, 
                     x: pointer.worldX, 
-                    y: pointer.worldY
+                    y: pointer.worldY,
+                    id: this.currentItem 
                 })
                 this.canPlace = false
                 setTimeout(() => this.canPlace = true, 100)
@@ -190,26 +207,6 @@ class Main extends Phaser.Scene {
                 this.canDestroy = false
                 setTimeout(() => this.canDestroy = true, 1000)
             }
-        }
-    
-        
-        if(this.player){
-            this.player.update()
-        }
-        if(this.players.state){
-            Object.entries(this.players.state).forEach(([id, state]) => {
-                
-                if(id !== Game.io.id){
-                    let p = this.players.instances[id]
-    
-                    if(!p){
-                        p = new Player(this, true, state.nick)
-                        this.players.instances[id] = p
-                    }
-                    p.update(state.state)
-                }
-            })
-    
         }
     }
 }
