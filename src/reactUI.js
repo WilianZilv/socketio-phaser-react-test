@@ -40,7 +40,7 @@ class App extends React.Component {
         return (
             <div className='app flex vertical padding-sm'>
                 {showPlayers && <div className='players shadow pointer-events-on'>
-                    <h5 className='msg padding-sm'>Jogadores {players.length}</h5>
+                    <h5 className='msg padding-sm'>Jogadores - {players.length}</h5>
                     <div className='scroll'>
                         <ul className='twocolumns'>
                         {
